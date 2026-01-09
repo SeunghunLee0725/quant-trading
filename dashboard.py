@@ -27,7 +27,13 @@ st.set_page_config(
 if 'menu' not in st.session_state:
     st.session_state.menu = "home"
 
-# CSS 스타일
+# URL 파라미터 처리
+if 'menu' in st.query_params:
+    st.session_state.menu = st.query_params['menu']
+
+menu = st.session_state.menu
+
+# CSS 스타일 - 오른쪽 세로 네비게이션
 st.markdown("""
 <style>
     /* 기본 설정 */
@@ -36,32 +42,42 @@ st.markdown("""
     }
     .block-container {
         padding: 1rem !important;
+        padding-right: 60px !important;
         max-width: 100% !important;
     }
 
-    /* 탭 네비게이션 - 오른쪽 중앙 배치 */
-    .stTabs {
+    /* 오른쪽 세로 네비게이션 바 (3시 방향) */
+    .right-nav {
+        position: fixed;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        background: rgba(26, 26, 46, 0.95);
+        border-radius: 12px 0 0 12px;
+        padding: 8px 4px;
+        z-index: 9999;
         display: flex;
-        justify-content: flex-end;
+        flex-direction: column;
+        gap: 4px;
+        box-shadow: -2px 0 10px rgba(0,0,0,0.3);
     }
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 0;
-        background: #1a1a2e;
-        border-radius: 12px;
-        padding: 4px;
-        width: auto;
-    }
-    .stTabs [data-baseweb="tab"] {
-        height: 36px;
+    .nav-btn {
+        width: 44px;
+        height: 44px;
         border-radius: 8px;
-        color: #888;
-        font-weight: 500;
-        font-size: 0.8rem;
-        padding: 0 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        font-size: 1.1rem;
     }
-    .stTabs [aria-selected="true"] {
-        background: #4FC3F7 !important;
-        color: #000 !important;
+    .nav-btn:hover {
+        background: rgba(79, 195, 247, 0.2);
+    }
+    .nav-btn.active {
+        background: #4FC3F7;
     }
 
     /* 카드 스타일 */
@@ -154,6 +170,22 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+# 오른쪽 세로 네비게이션 바 렌더링
+nav_items = [
+    ("home", "🏠"),
+    ("screen", "🔍"),
+    ("backtest", "📈"),
+    ("analysis", "📊"),
+    ("settings", "⚙️"),
+]
+
+nav_html = '<div class="right-nav">'
+for key, icon in nav_items:
+    active = "active" if menu == key else ""
+    nav_html += f'<a href="?menu={key}" class="nav-btn {active}">{icon}</a>'
+nav_html += '</div>'
+st.markdown(nav_html, unsafe_allow_html=True)
+
 
 # 데이터 로드 함수
 @st.cache_data(ttl=60)
@@ -179,18 +211,10 @@ def load_stock_data(code: str, limit: int = 100):
     return db.get_daily_ohlcv(code, limit=limit)
 
 
-# URL 파라미터 처리
-if 'menu' in st.query_params:
-    st.session_state.menu = st.query_params['menu']
-
-# 탭 네비게이션
-tabs = st.tabs(["홈", "스크리닝", "백테스트", "분석", "설정"])
-
-# ===== 홈 탭 =====
-with tabs[0]:
+# ===== 홈 =====
+if menu == "home":
     counts = load_stock_count()
 
-    # 요약 카드
     st.markdown("""
     <div class="card">
         <div class="card-title">총 종목</div>
@@ -233,8 +257,8 @@ with tabs[0]:
         </div>
         """, unsafe_allow_html=True)
 
-# ===== 스크리닝 탭 =====
-with tabs[1]:
+# ===== 스크리닝 =====
+elif menu == "screen":
     st.markdown('<div class="page-header">종목 스크리닝</div>', unsafe_allow_html=True)
 
     col1, col2 = st.columns(2)
@@ -303,8 +327,8 @@ with tabs[1]:
             else:
                 status.warning("조건에 맞는 종목이 없습니다")
 
-# ===== 백테스트 탭 =====
-with tabs[2]:
+# ===== 백테스트 =====
+elif menu == "backtest":
     st.markdown('<div class="page-header">백테스트</div>', unsafe_allow_html=True)
 
     bt_strategy = st.selectbox(
@@ -416,8 +440,8 @@ with tabs[2]:
                 except Exception as e:
                     st.error(f"오류: {e}")
 
-# ===== 분석 탭 =====
-with tabs[3]:
+# ===== 분석 =====
+elif menu == "analysis":
     st.markdown('<div class="page-header">종목 분석</div>', unsafe_allow_html=True)
 
     stocks = load_stocks()
@@ -464,8 +488,8 @@ with tabs[3]:
                     recent.columns = ['시가', '고가', '저가', '종가', '거래량']
                     st.dataframe(recent, use_container_width=True)
 
-# ===== 설정 탭 =====
-with tabs[4]:
+# ===== 설정 =====
+elif menu == "settings":
     st.markdown('<div class="page-header">시스템 정보</div>', unsafe_allow_html=True)
 
     counts = load_stock_count()
