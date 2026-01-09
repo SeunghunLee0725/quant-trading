@@ -3,11 +3,11 @@
 .env.local
 .env.*.local
 
-# 데이터베이스
-*.db
+# 데이터베이스 (quant.db는 포함 - Streamlit Cloud용)
+# *.db
 *.sqlite
 *.sqlite3
-db/
+# db/
 
 # Python
 __pycache__/
