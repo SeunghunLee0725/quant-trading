@@ -86,37 +86,9 @@ st.markdown("""
         color: #FFFFFF !important;
     }
 
-    /* 상단 네비게이션 바 (고정 아님 - Streamlit 헤더 아래 배치) */
-    .top-nav {
-        background: rgba(30,33,40,0.95);
-        border: 1px solid rgba(255,255,255,0.1);
-        border-radius: 10px;
-        display: flex;
-        justify-content: space-around;
-        align-items: center;
-        padding: 10px 5px;
-        margin: calc(0.5rem + 20px) 0 1rem 0;
-    }
-
-    .nav-item {
-        text-decoration: none;
-        color: #888;
-        font-size: 0.85rem;
-        padding: 8px 12px;
-        border-radius: 8px;
-        transition: all 0.2s;
-        font-weight: 500;
-        cursor: pointer;
-    }
-
-    .nav-item:hover {
-        color: #4FC3F7;
-        background: rgba(79,195,247,0.1);
-    }
-
-    .nav-item.active {
-        color: #4FC3F7;
-        background: rgba(79,195,247,0.15);
+    /* 네비게이션 버튼 여백 */
+    .stButton {
+        margin-top: 20px;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -149,20 +121,6 @@ def load_stock_data(code: str, limit: int = 100):
     return db.get_daily_ohlcv(code, limit=limit)
 
 
-# 상단 네비게이션 바 (HTML)
-def render_top_nav():
-    current = st.session_state.menu
-    st.markdown(f"""
-    <div class="top-nav">
-        <span class="nav-item {'active' if current == 'home' else ''}" onclick="window.location.href='?menu=home'">홈</span>
-        <span class="nav-item {'active' if current == 'screen' else ''}" onclick="window.location.href='?menu=screen'">스크리닝</span>
-        <span class="nav-item {'active' if current == 'backtest' else ''}" onclick="window.location.href='?menu=backtest'">백테스트</span>
-        <span class="nav-item {'active' if current == 'analysis' else ''}" onclick="window.location.href='?menu=analysis'">분석</span>
-        <span class="nav-item {'active' if current == 'settings' else ''}" onclick="window.location.href='?menu=settings'">설정</span>
-    </div>
-    """, unsafe_allow_html=True)
-
-
 # URL 쿼리 파라미터로 메뉴 상태 관리
 query_params = st.query_params
 if 'menu' in query_params:
@@ -170,8 +128,20 @@ if 'menu' in query_params:
 
 menu = st.session_state.menu
 
-# 상단 네비게이션 렌더링
-render_top_nav()
+# 상단 네비게이션 (Streamlit 버튼)
+nav_cols = st.columns(5)
+menus = [("home", "홈"), ("screen", "스크리닝"), ("backtest", "백테스트"),
+         ("analysis", "분석"), ("settings", "설정")]
+
+for i, (key, label) in enumerate(menus):
+    with nav_cols[i]:
+        btn_type = "primary" if menu == key else "secondary"
+        if st.button(label, use_container_width=True, type=btn_type, key=f"nav_{key}"):
+            st.session_state.menu = key
+            st.query_params["menu"] = key
+            st.rerun()
+
+st.markdown("---")
 
 # 메인 컨텐츠
 if menu == "home":
