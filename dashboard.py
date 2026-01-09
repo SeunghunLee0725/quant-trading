@@ -95,7 +95,7 @@ st.markdown("""
         justify-content: space-around;
         align-items: center;
         padding: 10px 5px;
-        margin: calc(0.5rem + 10px) 0 1rem 0;
+        margin: calc(0.5rem + 20px) 0 1rem 0;
     }
 
     .nav-item {
