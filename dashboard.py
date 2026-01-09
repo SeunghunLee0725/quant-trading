@@ -39,19 +39,25 @@ st.markdown("""
         max-width: 100% !important;
     }
 
-    /* 탭 네비게이션 */
+    /* 탭 네비게이션 - 오른쪽 중앙 배치 */
+    .stTabs {
+        display: flex;
+        justify-content: flex-end;
+    }
     .stTabs [data-baseweb="tab-list"] {
         gap: 0;
         background: #1a1a2e;
         border-radius: 12px;
         padding: 4px;
+        width: auto;
     }
     .stTabs [data-baseweb="tab"] {
-        height: 40px;
+        height: 36px;
         border-radius: 8px;
         color: #888;
         font-weight: 500;
-        font-size: 0.85rem;
+        font-size: 0.8rem;
+        padding: 0 12px;
     }
     .stTabs [aria-selected="true"] {
         background: #4FC3F7 !important;
