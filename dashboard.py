@@ -347,7 +347,8 @@ elif menu == "🔍 스크리닝":
 
     col1, col2 = st.columns([3, 1])
     with col1:
-        max_stocks = st.slider("분석 종목 수", 100, min(500, total), 200, 50, key="screen_count")
+        max_stocks = st.slider("분석 종목 수", 100, total, 200, 50, key="screen_count")
+        st.caption(f"전체: {total:,}개")
     with col2:
         st.write("")
         st.write("")
