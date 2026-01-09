@@ -86,9 +86,13 @@ st.markdown("""
         color: #FFFFFF !important;
     }
 
-    /* 네비게이션 버튼 여백 */
+    /* 네비게이션 버튼 스타일 */
     .stButton {
-        margin-top: 20px;
+        margin-top: 10px;
+    }
+    .stButton > button {
+        padding: 0.4rem 0.2rem !important;
+        font-size: 0.8rem !important;
     }
 </style>
 """, unsafe_allow_html=True)
