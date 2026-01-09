@@ -1,0 +1,48 @@
+# 퀀트 트레이딩 시스템 의존성 패키지
+# Python 3.10+ 필요
+
+# 데이터 처리
+pandas>=2.0.0
+numpy>=1.24.0
+
+# 한국 주식 데이터 수집
+finance-datareader>=0.9.50
+pykrx>=1.0.45
+
+# 해외 주식 데이터 (백업용)
+yfinance>=0.2.36
+
+# 기술적 분석
+ta>=0.11.0
+
+# 데이터베이스
+aiosqlite>=0.19.0
+
+# HTTP 요청
+requests>=2.31.0
+aiohttp>=3.9.0
+
+# 스케줄링
+schedule>=1.2.0
+APScheduler>=3.10.0
+
+# 알림 (텔레그램)
+python-telegram-bot>=20.7
+
+# 시각화
+mplfinance>=0.12.10b0
+matplotlib>=3.7.0
+
+# 환경변수 관리
+python-dotenv>=1.0.0
+
+# 유틸리티
+tqdm>=4.66.0
+pytz>=2024.1
+
+# 테스트
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+
+# 타입 힌팅
+typing-extensions>=4.9.0
