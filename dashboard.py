@@ -86,20 +86,16 @@ st.markdown("""
         color: #FFFFFF !important;
     }
 
-    /* 상단 고정 네비게이션 바 */
+    /* 상단 네비게이션 바 (고정 아님 - Streamlit 헤더 아래 배치) */
     .top-nav {
-        position: sticky;
-        top: 0;
-        left: 0;
-        right: 0;
-        background: rgba(14,17,23,0.98);
-        border-bottom: 1px solid rgba(255,255,255,0.1);
+        background: rgba(30,33,40,0.95);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 10px;
         display: flex;
         justify-content: space-around;
         align-items: center;
-        z-index: 9999;
-        padding: 8px 5px;
-        margin: -0.5rem -0.5rem 0.5rem -0.5rem;
+        padding: 10px 5px;
+        margin: 0.5rem 0 1rem 0;
     }
 
     .nav-item {
@@ -176,36 +172,6 @@ menu = st.session_state.menu
 
 # 상단 네비게이션 렌더링
 render_top_nav()
-
-# Streamlit 버튼 fallback (JS 미작동 시)
-nav_cols = st.columns(5)
-with nav_cols[0]:
-    if st.button("홈", use_container_width=True, type="primary" if menu == "home" else "secondary"):
-        st.session_state.menu = "home"
-        st.query_params["menu"] = "home"
-        st.rerun()
-with nav_cols[1]:
-    if st.button("스크리닝", use_container_width=True, type="primary" if menu == "screen" else "secondary"):
-        st.session_state.menu = "screen"
-        st.query_params["menu"] = "screen"
-        st.rerun()
-with nav_cols[2]:
-    if st.button("백테스트", use_container_width=True, type="primary" if menu == "backtest" else "secondary"):
-        st.session_state.menu = "backtest"
-        st.query_params["menu"] = "backtest"
-        st.rerun()
-with nav_cols[3]:
-    if st.button("분석", use_container_width=True, type="primary" if menu == "analysis" else "secondary"):
-        st.session_state.menu = "analysis"
-        st.query_params["menu"] = "analysis"
-        st.rerun()
-with nav_cols[4]:
-    if st.button("설정", use_container_width=True, type="primary" if menu == "settings" else "secondary"):
-        st.session_state.menu = "settings"
-        st.query_params["menu"] = "settings"
-        st.rerun()
-
-st.markdown("---")
 
 # 메인 컨텐츠
 if menu == "home":
