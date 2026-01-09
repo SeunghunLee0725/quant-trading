@@ -42,7 +42,7 @@ st.markdown("""
 
     /* 모바일 최적화 */
     .block-container {
-        padding: 0.5rem 0.5rem 5rem 0.5rem !important;
+        padding: 0.5rem !important;
         max-width: 100% !important;
     }
 
@@ -86,34 +86,31 @@ st.markdown("""
         color: #FFFFFF !important;
     }
 
-    /* 하단 고정 네비게이션 바 */
-    .bottom-nav {
-        position: fixed;
-        bottom: 0;
+    /* 상단 고정 네비게이션 바 */
+    .top-nav {
+        position: sticky;
+        top: 0;
         left: 0;
         right: 0;
-        height: 60px;
-        background: linear-gradient(180deg, rgba(14,17,23,0.95) 0%, rgba(14,17,23,1) 100%);
-        border-top: 1px solid rgba(255,255,255,0.1);
+        background: rgba(14,17,23,0.98);
+        border-bottom: 1px solid rgba(255,255,255,0.1);
         display: flex;
         justify-content: space-around;
         align-items: center;
         z-index: 9999;
-        padding: 0 5px;
+        padding: 8px 5px;
+        margin: -0.5rem -0.5rem 0.5rem -0.5rem;
     }
 
     .nav-item {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
         text-decoration: none;
         color: #888;
-        font-size: 0.65rem;
-        padding: 5px 8px;
+        font-size: 0.85rem;
+        padding: 8px 12px;
         border-radius: 8px;
         transition: all 0.2s;
-        min-width: 50px;
+        font-weight: 500;
+        cursor: pointer;
     }
 
     .nav-item:hover {
@@ -124,16 +121,6 @@ st.markdown("""
     .nav-item.active {
         color: #4FC3F7;
         background: rgba(79,195,247,0.15);
-    }
-
-    .nav-icon {
-        font-size: 1.3rem;
-        margin-bottom: 2px;
-    }
-
-    .nav-label {
-        font-size: 0.6rem;
-        font-weight: 500;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -166,31 +153,16 @@ def load_stock_data(code: str, limit: int = 100):
     return db.get_daily_ohlcv(code, limit=limit)
 
 
-# 하단 네비게이션 바 (HTML)
-def render_bottom_nav():
+# 상단 네비게이션 바 (HTML)
+def render_top_nav():
     current = st.session_state.menu
     st.markdown(f"""
-    <div class="bottom-nav">
-        <div class="nav-item {'active' if current == 'home' else ''}" onclick="window.location.href='?menu=home'">
-            <span class="nav-icon">🏠</span>
-            <span class="nav-label">홈</span>
-        </div>
-        <div class="nav-item {'active' if current == 'screen' else ''}" onclick="window.location.href='?menu=screen'">
-            <span class="nav-icon">🔍</span>
-            <span class="nav-label">스크리닝</span>
-        </div>
-        <div class="nav-item {'active' if current == 'backtest' else ''}" onclick="window.location.href='?menu=backtest'">
-            <span class="nav-icon">📈</span>
-            <span class="nav-label">백테스트</span>
-        </div>
-        <div class="nav-item {'active' if current == 'analysis' else ''}" onclick="window.location.href='?menu=analysis'">
-            <span class="nav-icon">📊</span>
-            <span class="nav-label">분석</span>
-        </div>
-        <div class="nav-item {'active' if current == 'settings' else ''}" onclick="window.location.href='?menu=settings'">
-            <span class="nav-icon">⚙️</span>
-            <span class="nav-label">설정</span>
-        </div>
+    <div class="top-nav">
+        <span class="nav-item {'active' if current == 'home' else ''}" onclick="window.location.href='?menu=home'">홈</span>
+        <span class="nav-item {'active' if current == 'screen' else ''}" onclick="window.location.href='?menu=screen'">스크리닝</span>
+        <span class="nav-item {'active' if current == 'backtest' else ''}" onclick="window.location.href='?menu=backtest'">백테스트</span>
+        <span class="nav-item {'active' if current == 'analysis' else ''}" onclick="window.location.href='?menu=analysis'">분석</span>
+        <span class="nav-item {'active' if current == 'settings' else ''}" onclick="window.location.href='?menu=settings'">설정</span>
     </div>
     """, unsafe_allow_html=True)
 
@@ -202,30 +174,33 @@ if 'menu' in query_params:
 
 menu = st.session_state.menu
 
-# 상단에 Streamlit 버튼으로 메뉴 구현 (JS fallback)
+# 상단 네비게이션 렌더링
+render_top_nav()
+
+# Streamlit 버튼 fallback (JS 미작동 시)
 nav_cols = st.columns(5)
 with nav_cols[0]:
-    if st.button("🏠", use_container_width=True, type="primary" if menu == "home" else "secondary"):
+    if st.button("홈", use_container_width=True, type="primary" if menu == "home" else "secondary"):
         st.session_state.menu = "home"
         st.query_params["menu"] = "home"
         st.rerun()
 with nav_cols[1]:
-    if st.button("🔍", use_container_width=True, type="primary" if menu == "screen" else "secondary"):
+    if st.button("스크리닝", use_container_width=True, type="primary" if menu == "screen" else "secondary"):
         st.session_state.menu = "screen"
         st.query_params["menu"] = "screen"
         st.rerun()
 with nav_cols[2]:
-    if st.button("📈", use_container_width=True, type="primary" if menu == "backtest" else "secondary"):
+    if st.button("백테스트", use_container_width=True, type="primary" if menu == "backtest" else "secondary"):
         st.session_state.menu = "backtest"
         st.query_params["menu"] = "backtest"
         st.rerun()
 with nav_cols[3]:
-    if st.button("📊", use_container_width=True, type="primary" if menu == "analysis" else "secondary"):
+    if st.button("분석", use_container_width=True, type="primary" if menu == "analysis" else "secondary"):
         st.session_state.menu = "analysis"
         st.query_params["menu"] = "analysis"
         st.rerun()
 with nav_cols[4]:
-    if st.button("⚙️", use_container_width=True, type="primary" if menu == "settings" else "secondary"):
+    if st.button("설정", use_container_width=True, type="primary" if menu == "settings" else "secondary"):
         st.session_state.menu = "settings"
         st.query_params["menu"] = "settings"
         st.rerun()
@@ -533,5 +508,3 @@ elif menu == "settings":
     db = get_db()
     st.caption(f"DB: {db.db_path.name}")
 
-# 하단 네비게이션 렌더링
-render_bottom_nav()
