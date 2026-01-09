@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-주식 퀀트 트레이딩 시스템 - Streamlit 대시보드 (모바일 최적화)
+주식 퀀트 트레이딩 시스템 - Streamlit 대시보드 (모바일 최적화 + 하단 메뉴)
 """
 
 import streamlit as st
@@ -21,69 +21,61 @@ from backtest import Backtester, BacktestConfig, MultiStrategyBacktester
 st.set_page_config(
     page_title="Quant Trading",
     page_icon="📈",
-    layout="centered",  # 모바일에 적합한 centered 레이아웃
-    initial_sidebar_state="collapsed"  # 사이드바 기본 접힘
+    layout="centered",
+    initial_sidebar_state="collapsed"
 )
 
-# 모바일 최적화 CSS
+# 세션 상태로 메뉴 관리
+if 'menu' not in st.session_state:
+    st.session_state.menu = "home"
+
+# 모바일 최적화 CSS + 하단 고정 메뉴
 st.markdown("""
 <style>
+    /* 사이드바 완전히 숨기기 */
+    [data-testid="stSidebar"] {
+        display: none !important;
+    }
+    [data-testid="collapsedControl"] {
+        display: none !important;
+    }
+
     /* 모바일 최적화 */
     .block-container {
-        padding: 1rem 0.5rem !important;
+        padding: 0.5rem 0.5rem 5rem 0.5rem !important;
         max-width: 100% !important;
     }
 
     /* 메인 헤더 */
     .main-header {
-        font-size: 1.5rem;
+        font-size: 1.4rem;
         font-weight: bold;
         color: #4FC3F7;
         text-align: center;
-        margin-bottom: 0.5rem;
+        margin: 0.5rem 0;
     }
 
     /* 메트릭 카드 모바일 최적화 */
     [data-testid="stMetricValue"] {
-        font-size: 1.3rem !important;
+        font-size: 1.2rem !important;
     }
     [data-testid="stMetricLabel"] {
-        font-size: 0.8rem !important;
+        font-size: 0.75rem !important;
     }
     [data-testid="stMetricDelta"] {
-        font-size: 0.7rem !important;
+        font-size: 0.65rem !important;
     }
 
     /* 버튼 모바일 최적화 */
     .stButton > button {
         width: 100% !important;
-        padding: 0.75rem !important;
-        font-size: 1rem !important;
-    }
-
-    /* 입력 필드 모바일 최적화 */
-    .stSelectbox, .stMultiSelect, .stSlider, .stNumberInput {
-        margin-bottom: 0.5rem !important;
+        padding: 0.6rem !important;
+        font-size: 0.95rem !important;
     }
 
     /* 데이터프레임 스크롤 */
     .stDataFrame {
-        font-size: 0.8rem !important;
-    }
-
-    /* 탭 모바일 최적화 */
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 0.5rem;
-    }
-    .stTabs [data-baseweb="tab"] {
-        padding: 0.5rem 1rem;
-        font-size: 0.9rem;
-    }
-
-    /* 사이드바 너비 조정 */
-    [data-testid="stSidebar"] {
-        min-width: 200px !important;
-        max-width: 250px !important;
+        font-size: 0.75rem !important;
     }
 
     /* 다크모드 텍스트 */
@@ -94,12 +86,54 @@ st.markdown("""
         color: #FFFFFF !important;
     }
 
-    /* 카드 스타일 */
-    .info-card {
-        background: rgba(255,255,255,0.05);
-        border-radius: 10px;
-        padding: 1rem;
-        margin: 0.5rem 0;
+    /* 하단 고정 네비게이션 바 */
+    .bottom-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 60px;
+        background: linear-gradient(180deg, rgba(14,17,23,0.95) 0%, rgba(14,17,23,1) 100%);
+        border-top: 1px solid rgba(255,255,255,0.1);
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        z-index: 9999;
+        padding: 0 5px;
+    }
+
+    .nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        color: #888;
+        font-size: 0.65rem;
+        padding: 5px 8px;
+        border-radius: 8px;
+        transition: all 0.2s;
+        min-width: 50px;
+    }
+
+    .nav-item:hover {
+        color: #4FC3F7;
+        background: rgba(79,195,247,0.1);
+    }
+
+    .nav-item.active {
+        color: #4FC3F7;
+        background: rgba(79,195,247,0.15);
+    }
+
+    .nav-icon {
+        font-size: 1.3rem;
+        margin-bottom: 2px;
+    }
+
+    .nav-label {
+        font-size: 0.6rem;
+        font-weight: 500;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -132,23 +166,76 @@ def load_stock_data(code: str, limit: int = 100):
     return db.get_daily_ohlcv(code, limit=limit)
 
 
-# 사이드바 - 간소화
-with st.sidebar:
-    st.title("📊 메뉴")
-    menu = st.radio(
-        "",
-        ["🏠 홈", "🔍 스크리닝", "📈 백테스트", "📊 종목분석", "⚙️ 설정"],
-        label_visibility="collapsed"
-    )
+# 하단 네비게이션 바 (HTML)
+def render_bottom_nav():
+    current = st.session_state.menu
+    st.markdown(f"""
+    <div class="bottom-nav">
+        <div class="nav-item {'active' if current == 'home' else ''}" onclick="window.location.href='?menu=home'">
+            <span class="nav-icon">🏠</span>
+            <span class="nav-label">홈</span>
+        </div>
+        <div class="nav-item {'active' if current == 'screen' else ''}" onclick="window.location.href='?menu=screen'">
+            <span class="nav-icon">🔍</span>
+            <span class="nav-label">스크리닝</span>
+        </div>
+        <div class="nav-item {'active' if current == 'backtest' else ''}" onclick="window.location.href='?menu=backtest'">
+            <span class="nav-icon">📈</span>
+            <span class="nav-label">백테스트</span>
+        </div>
+        <div class="nav-item {'active' if current == 'analysis' else ''}" onclick="window.location.href='?menu=analysis'">
+            <span class="nav-icon">📊</span>
+            <span class="nav-label">분석</span>
+        </div>
+        <div class="nav-item {'active' if current == 'settings' else ''}" onclick="window.location.href='?menu=settings'">
+            <span class="nav-icon">⚙️</span>
+            <span class="nav-label">설정</span>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
-    st.markdown("---")
-    st.caption("Quant Trading v1.0")
+
+# URL 쿼리 파라미터로 메뉴 상태 관리
+query_params = st.query_params
+if 'menu' in query_params:
+    st.session_state.menu = query_params['menu']
+
+menu = st.session_state.menu
+
+# 상단에 Streamlit 버튼으로 메뉴 구현 (JS fallback)
+nav_cols = st.columns(5)
+with nav_cols[0]:
+    if st.button("🏠", use_container_width=True, type="primary" if menu == "home" else "secondary"):
+        st.session_state.menu = "home"
+        st.query_params["menu"] = "home"
+        st.rerun()
+with nav_cols[1]:
+    if st.button("🔍", use_container_width=True, type="primary" if menu == "screen" else "secondary"):
+        st.session_state.menu = "screen"
+        st.query_params["menu"] = "screen"
+        st.rerun()
+with nav_cols[2]:
+    if st.button("📈", use_container_width=True, type="primary" if menu == "backtest" else "secondary"):
+        st.session_state.menu = "backtest"
+        st.query_params["menu"] = "backtest"
+        st.rerun()
+with nav_cols[3]:
+    if st.button("📊", use_container_width=True, type="primary" if menu == "analysis" else "secondary"):
+        st.session_state.menu = "analysis"
+        st.query_params["menu"] = "analysis"
+        st.rerun()
+with nav_cols[4]:
+    if st.button("⚙️", use_container_width=True, type="primary" if menu == "settings" else "secondary"):
+        st.session_state.menu = "settings"
+        st.query_params["menu"] = "settings"
+        st.rerun()
+
+st.markdown("---")
 
 # 메인 컨텐츠
-if menu == "🏠 홈":
+if menu == "home":
     st.markdown('<h1 class="main-header">📈 퀀트 트레이딩</h1>', unsafe_allow_html=True)
 
-    # DB에서 실제 데이터 로드
     counts = load_stock_count()
 
     # 주요 지표 - 2x2 그리드
@@ -167,86 +254,62 @@ if menu == "🏠 홈":
     st.markdown("---")
 
     # 시장별 현황
-    st.subheader("📊 시장 현황")
     st.info(f"**KOSPI** {counts['kospi']:,}개 | **KOSDAQ** {counts['kosdaq']:,}개")
 
     st.markdown("---")
 
-    # 전략 소개 - 접히는 형태
+    # 전략 소개
     st.subheader("📋 전략")
 
-    with st.expander("상한가 따라잡기 (limit_up)", expanded=False):
-        st.write("상한가 종목의 눌림목 진입")
-        st.caption("타임프레임: 일봉 | 위험도: 높음")
+    with st.expander("상한가 따라잡기", expanded=False):
+        st.caption("상한가 종목 눌림목 진입 | 일봉 | 위험↑")
 
-    with st.expander("돌파 매매 (breakout)", expanded=False):
-        st.write("박스권 상단 돌파 시 매수")
-        st.caption("타임프레임: 일봉 | 위험도: 중간")
+    with st.expander("돌파 매매", expanded=False):
+        st.caption("박스권 상단 돌파 | 일봉 | 위험 중")
 
-    with st.expander("15분봉 전략 (minute15)", expanded=False):
-        st.write("15분봉 기반 단기 매매")
-        st.caption("타임프레임: 15분봉 | 위험도: 중간")
+    with st.expander("15분봉 전략", expanded=False):
+        st.caption("15분봉 단기매매 | 분봉 | 위험 중")
 
-    with st.expander("30분봉 전략 (minute30)", expanded=False):
-        st.write("30분봉 기반 스윙 매매")
-        st.caption("타임프레임: 30분봉 | 위험도: 낮음")
+    with st.expander("30분봉 전략", expanded=False):
+        st.caption("30분봉 스윙매매 | 분봉 | 위험↓")
 
-elif menu == "🔍 스크리닝":
-    st.markdown('<h1 class="main-header">🔍 종목 스크리닝</h1>', unsafe_allow_html=True)
+elif menu == "screen":
+    st.markdown('<h1 class="main-header">🔍 스크리닝</h1>', unsafe_allow_html=True)
 
     # 필터 프리셋
     PRESET_INFO = {
-        "default": {"name": "기본", "desc": "거래량 10만+, 20일선 위"},
-        "aggressive": {"name": "공격적", "desc": "급등주, 정배열"},
-        "conservative": {"name": "보수적", "desc": "안정적, 박스권"},
-        "volume_focus": {"name": "거래량", "desc": "거래량 급증"},
-        "breakout": {"name": "돌파", "desc": "52주 신고가 근접"},
+        "default": {"name": "기본", "desc": "거래량 10만+"},
+        "aggressive": {"name": "공격적", "desc": "급등주"},
+        "conservative": {"name": "보수적", "desc": "안정적"},
+        "volume_focus": {"name": "거래량", "desc": "급증"},
+        "breakout": {"name": "돌파", "desc": "신고가"},
     }
 
-    # 설정 영역
-    strategy = st.selectbox(
-        "전략",
-        ["전체", "limit_up", "breakout", "minute15", "minute30"]
-    )
-
-    preset = st.selectbox(
-        "필터",
-        list(PRESET_INFO.keys()),
-        format_func=lambda x: f"{PRESET_INFO[x]['name']} - {PRESET_INFO[x]['desc']}"
-    )
-
-    market = st.multiselect(
-        "시장",
-        ["KOSPI", "KOSDAQ"],
-        default=["KOSPI", "KOSDAQ"]
-    )
+    strategy = st.selectbox("전략", ["전체", "limit_up", "breakout", "minute15", "minute30"])
+    preset = st.selectbox("필터", list(PRESET_INFO.keys()),
+                         format_func=lambda x: f"{PRESET_INFO[x]['name']}")
+    market = st.multiselect("시장", ["KOSPI", "KOSDAQ"], default=["KOSPI", "KOSDAQ"])
 
     total_stocks = len(load_stocks()) if load_stocks() else 3000
-    max_stocks = st.slider(
-        "분석 종목 수",
-        100, min(1000, total_stocks), 300, step=100
-    )
+    max_stocks = st.slider("종목 수", 100, min(1000, total_stocks), 300, step=100)
 
-    run_screening = st.button("🔍 스크리닝 실행", type="primary", use_container_width=True)
+    run_screening = st.button("🔍 실행", type="primary", use_container_width=True)
 
-    st.markdown("---")
-
-    # 결과 영역
     if run_screening:
         progress_bar = st.progress(0)
         status_text = st.empty()
 
-        status_text.text("종목 데이터 로드 중...")
+        status_text.text("로드 중...")
         progress_bar.progress(10)
 
         stocks = load_stocks()
 
         if not stocks:
-            st.warning("등록된 종목이 없습니다.")
+            st.warning("종목이 없습니다.")
         else:
             filtered = [s for s in stocks if s['market'] in market][:max_stocks]
 
-            status_text.text(f"{len(filtered)}개 종목 분석 중...")
+            status_text.text(f"{len(filtered)}개 분석 중...")
             progress_bar.progress(20)
 
             db = get_db()
@@ -263,7 +326,7 @@ elif menu == "🔍 스크리닝":
                 progress = 20 + int(50 * (i + 1) / len(filtered))
                 progress_bar.progress(progress)
 
-            status_text.text(f"스크리닝 실행 중...")
+            status_text.text("스크리닝...")
             progress_bar.progress(75)
 
             strategy_list = None if strategy == "전체" else [strategy]
@@ -276,107 +339,67 @@ elif menu == "🔍 스크리닝":
             status_text.text("완료!")
 
             if results:
-                st.success(f"🎯 {len(results)}개 매수 신호!")
+                st.success(f"🎯 {len(results)}개 신호!")
 
                 result_df = screener.to_dataframe()
-                result_df = result_df[['code', 'name', 'strategy', 'score', 'entry_price', 'reason']]
-                result_df.columns = ['코드', '종목명', '전략', '점수', '진입가', '사유']
-
+                result_df = result_df[['name', 'strategy', 'entry_price']]
+                result_df.columns = ['종목', '전략', '진입가']
                 result_df['진입가'] = result_df['진입가'].apply(
                     lambda x: f"{x:,.0f}" if pd.notna(x) else "-"
                 )
-                result_df['점수'] = result_df['점수'].apply(lambda x: f"{x:.1f}")
 
                 st.dataframe(result_df, use_container_width=True, hide_index=True)
-
-                # 전략별 요약
-                by_strategy = screener.get_results_by_strategy()
-                cols = st.columns(len(by_strategy))
-                for i, (strat, res) in enumerate(by_strategy.items()):
-                    with cols[i]:
-                        st.metric(strat, f"{len(res)}")
             else:
-                st.info("조건을 만족하는 종목이 없습니다.")
+                st.info("조건에 맞는 종목 없음")
     else:
         stocks = load_stocks()
         if stocks:
             st.info(f"📊 {len(stocks):,}개 종목 준비됨")
-        else:
-            st.warning("데이터 수집이 필요합니다.")
 
-elif menu == "📈 백테스트":
+elif menu == "backtest":
     st.markdown('<h1 class="main-header">📈 백테스트</h1>', unsafe_allow_html=True)
 
-    # 전략 선택
-    strategy = st.selectbox(
-        "전략",
-        ["전체", "limit_up", "breakout", "minute15", "minute30"]
-    )
+    strategy = st.selectbox("전략", ["전체", "limit_up", "breakout", "minute15", "minute30"])
 
-    # 종목 선택
-    stock_selection = st.radio(
-        "종목 선택",
-        ["주요 종목", "시장 전체", "직접 입력"],
-        horizontal=True
-    )
+    stock_selection = st.radio("종목", ["프리셋", "전체", "직접"], horizontal=True)
 
     selected_codes = []
 
-    if stock_selection == "주요 종목":
+    if stock_selection == "프리셋":
         major_stocks = {
-            "대형주 TOP10": ["005930", "000660", "035420", "005380", "006400",
-                           "035720", "051910", "005490", "028260", "012330"],
-            "2차전지/반도체": ["373220", "006400", "051910", "000660", "005930",
-                            "247540", "086520", "042700", "091990", "298050"],
+            "대형주": ["005930", "000660", "035420", "005380", "006400"],
+            "반도체": ["373220", "006400", "051910", "000660", "005930"],
             "바이오": ["068270", "207940", "091990", "326030", "145020"],
-            "금융": ["105560", "055550", "086790", "024110", "316140"],
         }
-
         preset_choice = st.selectbox("프리셋", list(major_stocks.keys()))
         selected_codes = major_stocks[preset_choice]
-        st.caption(f"선택: {len(selected_codes)}개 종목")
+        st.caption(f"{len(selected_codes)}개 종목")
 
-    elif stock_selection == "시장 전체":
-        bt_market = st.multiselect("시장", ["KOSPI", "KOSDAQ"], default=["KOSPI", "KOSDAQ"])
-        max_stocks = st.slider("종목 수", 50, 300, 100, step=50)
+    elif stock_selection == "전체":
+        bt_market = st.multiselect("시장", ["KOSPI", "KOSDAQ"], default=["KOSPI"])
+        max_stocks = st.slider("수", 50, 200, 100, step=50)
 
-    else:  # 직접 입력
+    else:
         all_stocks = load_stocks()
-        stock_dict = {f"{s['name']} ({s['code']})": s['code'] for s in all_stocks}
-
-        selected_items = st.multiselect(
-            "종목 검색",
-            options=list(stock_dict.keys()),
-            placeholder="종목명 입력..."
-        )
-
+        stock_dict = {f"{s['name']}": s['code'] for s in all_stocks}
+        selected_items = st.multiselect("종목", options=list(stock_dict.keys()))
         if selected_items:
             selected_codes = [stock_dict[item] for item in selected_items]
-            st.caption(f"선택: {len(selected_codes)}개")
 
-    # 기간 및 자본
-    days = st.slider("기간 (일)", 30, 730, 365)
+    days = st.slider("기간(일)", 30, 365, 180)
 
-    with st.expander("고급 설정"):
-        initial_capital = st.number_input(
-            "초기 자본 (원)", 1000000, 100000000, 10000000, step=1000000
-        )
-        max_positions = st.slider("최대 보유 종목", 1, 20, 10)
-
-    run_backtest = st.button("📊 백테스트 실행", type="primary", use_container_width=True)
-
-    st.markdown("---")
+    run_backtest = st.button("📊 실행", type="primary", use_container_width=True)
 
     if run_backtest:
         progress_bar = st.progress(0)
         status_text = st.empty()
 
-        status_text.text("데이터 로드 중...")
+        status_text.text("로드 중...")
         progress_bar.progress(5)
 
         stocks = load_stocks()
         if not stocks:
-            st.error("종목 데이터가 없습니다.")
+            st.error("데이터 없음")
         else:
             db = get_db()
             stock_data = {}
@@ -387,30 +410,25 @@ elif menu == "📈 백테스트":
                 filtered = [s for s in stocks if s['market'] in bt_market][:max_stocks]
                 codes_to_load = [s['code'] for s in filtered]
 
-            status_text.text(f"{len(codes_to_load)}개 종목 준비 중...")
+            status_text.text(f"{len(codes_to_load)}개 준비...")
             progress_bar.progress(10)
 
             for i, code in enumerate(codes_to_load):
                 df = db.get_daily_ohlcv(code, limit=days + 60)
-
                 if df is not None and len(df) >= 20:
                     if not isinstance(df.index, pd.DatetimeIndex):
                         df.index = pd.to_datetime(df.index)
                     stock_data[code] = df
-
                 progress = 10 + int(40 * (i + 1) / len(codes_to_load))
                 progress_bar.progress(progress)
 
             if not stock_data:
-                st.error("유효한 데이터가 없습니다.")
+                st.error("데이터 없음")
             else:
-                status_text.text("백테스트 실행 중...")
+                status_text.text("실행 중...")
                 progress_bar.progress(55)
 
-                config = BacktestConfig(
-                    initial_capital=initial_capital,
-                    max_positions=max_positions,
-                )
+                config = BacktestConfig(initial_capital=10000000, max_positions=10)
 
                 try:
                     if strategy == "전체":
@@ -419,63 +437,30 @@ elif menu == "📈 백테스트":
                         results = bt.run(stock_data)
 
                         progress_bar.progress(90)
-                        st.success("백테스트 완료!")
+                        st.success("완료!")
 
                         compare_df = bt.compare_strategies()
                         if not compare_df.empty:
-                            st.subheader("전략별 비교")
-
-                            # 간소화된 결과 테이블
-                            display_df = compare_df[['전략', '총수익률(%)', '승률(%)', '총거래수']].copy()
+                            display_df = compare_df[['전략', '총수익률(%)', '승률(%)']].copy()
                             display_df['총수익률(%)'] = display_df['총수익률(%)'].apply(lambda x: f"{x:.1f}%")
                             display_df['승률(%)'] = display_df['승률(%)'].apply(lambda x: f"{x:.1f}%")
-
                             st.dataframe(display_df, use_container_width=True, hide_index=True)
-
-                            best = compare_df.iloc[0]
-                            st.info(f"🏆 최고: **{best['전략']}** ({best['총수익률(%)']:.1f}%)")
                     else:
                         bt = Backtester(strategy, config)
                         metrics = bt.run(stock_data)
 
                         progress_bar.progress(90)
-                        st.success(f"**{strategy}** 백테스트 완료!")
+                        st.success("완료!")
 
-                        # 결과 표시 - 2x2 그리드
                         col1, col2 = st.columns(2)
                         with col1:
-                            color = "normal" if metrics.total_return >= 0 else "inverse"
-                            st.metric("수익률", f"{metrics.total_return_percent:.1f}%",
-                                     delta=f"{metrics.total_return:,.0f}원", delta_color=color)
+                            st.metric("수익률", f"{metrics.total_return_percent:.1f}%")
                         with col2:
-                            st.metric("MDD", f"{metrics.max_drawdown_percent:.1f}%")
-
-                        col3, col4 = st.columns(2)
-                        with col3:
                             st.metric("승률", f"{metrics.win_rate:.1f}%")
-                        with col4:
-                            st.metric("거래", f"{metrics.total_trades}회")
 
-                        # 자산 곡선
                         equity_df = bt.get_equity_curve()
                         if not equity_df.empty:
-                            st.subheader("자산 곡선")
-                            chart_data = equity_df.set_index('date')['equity']
-                            st.line_chart(chart_data)
-
-                        # 거래 내역
-                        trades = bt.get_trades()
-                        if trades:
-                            with st.expander(f"거래 내역 ({len(trades)}건)"):
-                                trade_records = []
-                                for t in trades:
-                                    trade_records.append({
-                                        '종목': t.name[:6],
-                                        '진입': str(t.entry_date)[:10],
-                                        '수익률': f"{t.pnl_percent:.1f}%",
-                                    })
-                                st.dataframe(pd.DataFrame(trade_records),
-                                           use_container_width=True, hide_index=True)
+                            st.line_chart(equity_df.set_index('date')['equity'])
 
                     progress_bar.progress(100)
                     status_text.text("완료!")
@@ -484,38 +469,25 @@ elif menu == "📈 백테스트":
                     st.error(f"오류: {str(e)}")
     else:
         counts = load_stock_count()
-        col1, col2 = st.columns(2)
-        with col1:
-            st.metric("종목", f"{counts['total']:,}개")
-        with col2:
-            st.metric("데이터", f"{counts['daily_data']:,}건")
-        st.info("설정 후 '백테스트 실행' 버튼을 클릭하세요.")
+        st.info(f"📊 {counts['total']:,}개 종목 | {counts['daily_data']:,}건 데이터")
 
-elif menu == "📊 종목분석":
-    st.markdown('<h1 class="main-header">📊 종목 분석</h1>', unsafe_allow_html=True)
+elif menu == "analysis":
+    st.markdown('<h1 class="main-header">📊 종목분석</h1>', unsafe_allow_html=True)
 
-    # 종목 선택
     stocks = load_stocks()
-    stock_options = {f"{s['name']} ({s['code']})": s['code'] for s in stocks}
+    stock_options = {f"{s['name']}": s['code'] for s in stocks}
 
-    selected = st.selectbox(
-        "종목 선택",
-        options=list(stock_options.keys()),
-        placeholder="종목명 검색..."
-    )
-
+    selected = st.selectbox("종목", options=list(stock_options.keys()))
     code = stock_options.get(selected, "") if selected else ""
 
     analyze_btn = st.button("🔍 분석", type="primary", use_container_width=True)
-
-    st.markdown("---")
 
     if analyze_btn and code:
         with st.spinner("분석 중..."):
             df = load_stock_data(code, limit=252)
 
             if df.empty:
-                st.error(f"데이터 없음: {code}")
+                st.error("데이터 없음")
             else:
                 db = get_db()
                 stock_info = db.get_stock(code)
@@ -524,63 +496,42 @@ elif menu == "📊 종목분석":
 
                 latest = df.iloc[-1]
 
-                # 기본 정보
                 col1, col2 = st.columns(2)
                 with col1:
-                    st.metric("현재가", f"{latest['close']:,.0f}원")
+                    st.metric("현재가", f"{latest['close']:,.0f}")
                 with col2:
                     if len(df) > 1:
                         prev_close = df.iloc[-2]['close']
                         change = (latest['close'] - prev_close) / prev_close * 100
-                        st.metric("등락률", f"{change:.2f}%")
+                        st.metric("등락", f"{change:.2f}%")
 
-                col3, col4 = st.columns(2)
-                with col3:
-                    st.metric("거래량", f"{latest['volume']:,.0f}")
-                with col4:
-                    st.metric("데이터", f"{len(df)}일")
-
-                # 차트
-                st.subheader("📈 가격 차트")
                 st.line_chart(df['close'].tail(60))
 
-                # 상세 데이터
-                with st.expander("최근 데이터"):
-                    display_df = df.tail(10).copy()
-                    display_df = display_df[['close', 'volume']]
+                with st.expander("상세"):
+                    display_df = df.tail(5)[['close', 'volume']]
                     display_df.columns = ['종가', '거래량']
-                    display_df = display_df.sort_index(ascending=False)
                     st.dataframe(display_df, use_container_width=True)
 
-    elif not selected:
-        st.info("종목을 선택하세요.")
-
-elif menu == "⚙️ 설정":
+elif menu == "settings":
     st.markdown('<h1 class="main-header">⚙️ 설정</h1>', unsafe_allow_html=True)
 
     counts = load_stock_count()
 
-    st.subheader("📊 데이터 현황")
-
     col1, col2 = st.columns(2)
     with col1:
-        st.metric("총 종목", f"{counts['total']:,}개")
-        st.metric("KOSPI", f"{counts['kospi']:,}개")
+        st.metric("종목", f"{counts['total']:,}")
+        st.metric("KOSPI", f"{counts['kospi']:,}")
     with col2:
-        st.metric("KOSDAQ", f"{counts['kosdaq']:,}개")
-        st.metric("일봉", f"{counts['daily_data']:,}건")
+        st.metric("KOSDAQ", f"{counts['kosdaq']:,}")
+        st.metric("일봉", f"{counts['daily_data']:,}")
 
     st.markdown("---")
 
-    st.subheader("📝 시스템 정보")
-    st.write(f"- Python: {sys.version.split()[0]}")
-    st.write(f"- 시간: {datetime.now().strftime('%Y-%m-%d %H:%M')}")
+    st.caption(f"Python {sys.version.split()[0]}")
+    st.caption(f"{datetime.now().strftime('%Y-%m-%d %H:%M')}")
 
     db = get_db()
-    st.write(f"- DB: {db.db_path.name}")
+    st.caption(f"DB: {db.db_path.name}")
 
-    st.markdown("---")
-
-    with st.expander("데이터 수집 명령어"):
-        st.code("python main.py --mode collect", language="bash")
-        st.caption("옵션: --market KOSPI/KOSDAQ, --days 365")
+# 하단 네비게이션 렌더링
+render_bottom_nav()
