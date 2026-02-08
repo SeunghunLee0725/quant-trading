@@ -26,7 +26,7 @@ from strategies import (
 @pytest.fixture
 def sample_daily_data():
     """일봉 테스트 데이터"""
-    dates = pd.date_range(start='2024-01-01', periods=60, freq='D')
+    dates = pd.date_range(start="2024-01-01", periods=60, freq="D")
 
     np.random.seed(42)
     base_price = 10000
@@ -55,19 +55,22 @@ def sample_daily_data():
 
         price = close_price
 
-    return pd.DataFrame({
-        'Open': opens,
-        'High': highs,
-        'Low': lows,
-        'Close': closes,
-        'Volume': volumes,
-    }, index=dates)
+    return pd.DataFrame(
+        {
+            "Open": opens,
+            "High": highs,
+            "Low": lows,
+            "Close": closes,
+            "Volume": volumes,
+        },
+        index=dates,
+    )
 
 
 @pytest.fixture
 def limit_up_data():
     """상한가 테스트 데이터"""
-    dates = pd.date_range(start='2024-01-01', periods=20, freq='D')
+    dates = pd.date_range(start="2024-01-01", periods=20, freq="D")
 
     # 10일차에 상한가 (29% 상승)
     opens = [10000] * 20
@@ -92,19 +95,22 @@ def limit_up_data():
         lows[i] = min(opens[i], closes[i]) - 100
         volumes[i] = 200000 + np.random.randint(-50000, 50000)
 
-    return pd.DataFrame({
-        'Open': opens,
-        'High': highs,
-        'Low': lows,
-        'Close': closes,
-        'Volume': volumes,
-    }, index=dates)
+    return pd.DataFrame(
+        {
+            "Open": opens,
+            "High": highs,
+            "Low": lows,
+            "Close": closes,
+            "Volume": volumes,
+        },
+        index=dates,
+    )
 
 
 @pytest.fixture
 def breakout_data():
     """기준봉 돌파 테스트 데이터"""
-    dates = pd.date_range(start='2024-01-01', periods=30, freq='D')
+    dates = pd.date_range(start="2024-01-01", periods=30, freq="D")
 
     opens = [10000] * 30
     closes = [10000] * 30
@@ -141,13 +147,16 @@ def breakout_data():
     lows[29] = 10700
     volumes[29] = 250000
 
-    return pd.DataFrame({
-        'Open': opens,
-        'High': highs,
-        'Low': lows,
-        'Close': closes,
-        'Volume': volumes,
-    }, index=dates)
+    return pd.DataFrame(
+        {
+            "Open": opens,
+            "High": highs,
+            "Low": lows,
+            "Close": closes,
+            "Volume": volumes,
+        },
+        index=dates,
+    )
 
 
 class TestSignal:
@@ -156,36 +165,36 @@ class TestSignal:
     def test_signal_creation(self):
         """Signal 생성 테스트"""
         signal = Signal(
-            code='005930',
-            name='삼성전자',
+            code="005930",
+            name="삼성전자",
             datetime=datetime.now(),
             signal_type=SignalType.BUY,
-            strategy='test',
+            strategy="test",
             price=70000,
             stop_loss=67000,
             take_profit=77000,
         )
 
-        assert signal.code == '005930'
+        assert signal.code == "005930"
         assert signal.signal_type == SignalType.BUY
         assert signal.price == 70000
 
     def test_signal_to_dict(self):
         """Signal to_dict 테스트"""
         signal = Signal(
-            code='005930',
-            name='삼성전자',
+            code="005930",
+            name="삼성전자",
             datetime=datetime.now(),
             signal_type=SignalType.BUY,
-            strategy='test',
+            strategy="test",
             price=70000,
         )
 
         d = signal.to_dict()
 
         assert isinstance(d, dict)
-        assert d['code'] == '005930'
-        assert d['signal_type'] == 'BUY'
+        assert d["code"] == "005930"
+        assert d["signal_type"] == "BUY"
 
 
 class TestStrategyRegistry:
@@ -193,9 +202,9 @@ class TestStrategyRegistry:
 
     def test_get_strategy(self):
         """전략 조회 테스트"""
-        strategy = get_strategy('limit_up')
+        strategy = get_strategy("limit_up")
         assert strategy is not None
-        assert strategy.name == 'limit_up'
+        assert strategy.name == "limit_up"
 
     def test_get_all_strategies(self):
         """전체 전략 조회 테스트"""
@@ -209,16 +218,16 @@ class TestMinute15Strategy:
     def test_strategy_creation(self):
         """전략 생성 테스트"""
         strategy = Minute15Strategy()
-        assert strategy.name == 'minute15'
+        assert strategy.name == "minute15"
 
     def test_generate_signal(self, sample_daily_data):
         """신호 생성 테스트"""
         strategy = Minute15Strategy()
-        signal = strategy.generate_signal(sample_daily_data, '005930', '삼성전자')
+        signal = strategy.generate_signal(sample_daily_data, "005930", "삼성전자")
 
         # 신호가 있거나 없거나 (조건에 따라)
         if signal:
-            assert signal.strategy == 'minute15'
+            assert signal.strategy == "minute15"
             assert signal.signal_type == SignalType.BUY
 
 
@@ -228,15 +237,15 @@ class TestMinute30Strategy:
     def test_strategy_creation(self):
         """전략 생성 테스트"""
         strategy = Minute30Strategy()
-        assert strategy.name == 'minute30'
+        assert strategy.name == "minute30"
 
     def test_generate_signal(self, sample_daily_data):
         """신호 생성 테스트"""
         strategy = Minute30Strategy()
-        signal = strategy.generate_signal(sample_daily_data, '005930', '삼성전자')
+        signal = strategy.generate_signal(sample_daily_data, "005930", "삼성전자")
 
         if signal:
-            assert signal.strategy == 'minute30'
+            assert signal.strategy == "minute30"
 
 
 class TestLimitUpStrategy:
@@ -245,25 +254,25 @@ class TestLimitUpStrategy:
     def test_strategy_creation(self):
         """전략 생성 테스트"""
         strategy = LimitUpStrategy()
-        assert strategy.name == 'limit_up'
+        assert strategy.name == "limit_up"
 
     def test_check_buy_conditions(self, limit_up_data):
         """매수 조건 확인 테스트"""
         strategy = LimitUpStrategy()
         conditions = strategy.check_buy_conditions(limit_up_data)
 
-        assert 'recent_limit_up' in conditions
-        assert 'price_support' in conditions
-        assert 'consolidation' in conditions
+        assert "recent_limit_up" in conditions
+        assert "price_support" in conditions
+        assert "consolidation" in conditions
 
     def test_generate_signal_with_limit_up(self, limit_up_data):
         """상한가 데이터로 신호 생성 테스트"""
         strategy = LimitUpStrategy()
-        signal = strategy.generate_signal(limit_up_data, '005930', '삼성전자')
+        signal = strategy.generate_signal(limit_up_data, "005930", "삼성전자")
 
         # 상한가 조건에 맞는 데이터이므로 신호가 있을 수 있음
         if signal:
-            assert signal.strategy == 'limit_up'
+            assert signal.strategy == "limit_up"
             assert signal.stop_loss < signal.price
             assert signal.take_profit > signal.price
 
@@ -274,24 +283,24 @@ class TestBreakoutStrategy:
     def test_strategy_creation(self):
         """전략 생성 테스트"""
         strategy = BreakoutStrategy()
-        assert strategy.name == 'breakout'
+        assert strategy.name == "breakout"
 
     def test_check_buy_conditions(self, breakout_data):
         """매수 조건 확인 테스트"""
         strategy = BreakoutStrategy()
         conditions = strategy.check_buy_conditions(breakout_data)
 
-        assert 'reference_candle' in conditions
-        assert 'consolidation' in conditions
-        assert 'breakout' in conditions
+        assert "reference_candle" in conditions
+        assert "consolidation" in conditions
+        assert "breakout" in conditions
 
     def test_generate_signal_with_breakout(self, breakout_data):
         """돌파 데이터로 신호 생성 테스트"""
         strategy = BreakoutStrategy()
-        signal = strategy.generate_signal(breakout_data, '005930', '삼성전자')
+        signal = strategy.generate_signal(breakout_data, "005930", "삼성전자")
 
         if signal:
-            assert signal.strategy == 'breakout'
+            assert signal.strategy == "breakout"
             assert signal.stop_loss < signal.price
 
 
@@ -303,15 +312,18 @@ class TestBaseStrategy:
         strategy = LimitUpStrategy()
 
         conditions = {
-            'recent_limit_up': True,
-            'price_support': True,
-            'consolidation': False,
+            "recent_limit_up": True,
+            "price_support": True,
+            "consolidation": False,
         }
 
         reason = strategy.get_signal_reason(conditions)
         assert isinstance(reason, str)
-        assert 'recent_limit_up' in reason
+        assert len(reason) > 0
+        # get_signal_reason returns Korean names for met conditions
+        assert "최근 상한가 기록" in reason
+        assert "상한가 종가 지지" in reason
 
 
-if __name__ == '__main__':
-    pytest.main([__file__, '-v'])
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"])

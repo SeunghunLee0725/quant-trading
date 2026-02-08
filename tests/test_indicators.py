@@ -42,7 +42,7 @@ from indicators import (
 @pytest.fixture
 def sample_ohlcv():
     """테스트용 OHLCV 데이터"""
-    dates = pd.date_range(start='2024-01-01', periods=100, freq='D')
+    dates = pd.date_range(start="2024-01-01", periods=100, freq="D")
 
     # 상승 추세 데이터 생성
     np.random.seed(42)
@@ -55,13 +55,16 @@ def sample_ohlcv():
 
     prices = np.array(prices)
 
-    df = pd.DataFrame({
-        'Open': prices * (1 - np.random.uniform(0, 0.02, 100)),
-        'High': prices * (1 + np.random.uniform(0, 0.03, 100)),
-        'Low': prices * (1 - np.random.uniform(0, 0.03, 100)),
-        'Close': prices,
-        'Volume': np.random.randint(100000, 1000000, 100),
-    }, index=dates)
+    df = pd.DataFrame(
+        {
+            "Open": prices * (1 - np.random.uniform(0, 0.02, 100)),
+            "High": prices * (1 + np.random.uniform(0, 0.03, 100)),
+            "Low": prices * (1 - np.random.uniform(0, 0.03, 100)),
+            "Close": prices,
+            "Volume": np.random.randint(100000, 1000000, 100),
+        },
+        index=dates,
+    )
 
     return df
 
@@ -69,18 +72,21 @@ def sample_ohlcv():
 @pytest.fixture
 def volume_spike_data():
     """거래량 급증 데이터"""
-    dates = pd.date_range(start='2024-01-01', periods=30, freq='D')
+    dates = pd.date_range(start="2024-01-01", periods=30, freq="D")
 
     # 마지막 날 거래량 급증
     volumes = [100000] * 29 + [500000]
 
-    df = pd.DataFrame({
-        'Open': [10000] * 30,
-        'High': [10500] * 30,
-        'Low': [9500] * 30,
-        'Close': [10200] * 30,
-        'Volume': volumes,
-    }, index=dates)
+    df = pd.DataFrame(
+        {
+            "Open": [10000] * 30,
+            "High": [10500] * 30,
+            "Low": [9500] * 30,
+            "Close": [10200] * 30,
+            "Volume": volumes,
+        },
+        index=dates,
+    )
 
     return df
 
@@ -108,8 +114,8 @@ class TestMovingAverage:
         """전체 MA 계산 테스트"""
         df = calculate_all_ma(sample_ohlcv, periods=[5, 20])
 
-        assert 'ma5' in df.columns
-        assert 'ma20' in df.columns
+        assert "ma5" in df.columns
+        assert "ma20" in df.columns
 
     def test_get_ma_values(self, sample_ohlcv):
         """MA 값 조회 테스트"""
@@ -124,17 +130,17 @@ class TestMovingAverage:
         """MA 상태 판단 테스트"""
         df = calculate_all_ma(sample_ohlcv, periods=[5, 20, 60])
         ma_values = get_ma_values(df, periods=[5, 20, 60])
-        current_price = sample_ohlcv['Close'].iloc[-1]
+        current_price = sample_ohlcv["Close"].iloc[-1]
 
         status = get_ma_status(current_price, ma_values)
 
-        assert status in ['BULLISH', 'BEARISH', 'MIXED', 'UNKNOWN']
+        assert status in ["BULLISH", "BEARISH", "MIXED", "UNKNOWN"]
 
     def test_detect_golden_cross(self, sample_ohlcv):
         """골든크로스 감지 테스트"""
         df = calculate_all_ma(sample_ohlcv, periods=[5, 20])
 
-        golden = detect_golden_cross(df['ma5'], df['ma20'])
+        golden = detect_golden_cross(df["ma5"], df["ma20"])
 
         assert len(golden) == len(sample_ohlcv)
         assert golden.dtype == bool
@@ -143,7 +149,7 @@ class TestMovingAverage:
         """데드크로스 감지 테스트"""
         df = calculate_all_ma(sample_ohlcv, periods=[5, 20])
 
-        dead = detect_dead_cross(df['ma5'], df['ma20'])
+        dead = detect_dead_cross(df["ma5"], df["ma20"])
 
         assert len(dead) == len(sample_ohlcv)
         assert dead.dtype == bool
@@ -167,7 +173,7 @@ class TestVolume:
 
     def test_detect_volume_spike(self, volume_spike_data):
         """거래량 급증 감지 테스트"""
-        spike = detect_volume_spike(volume_spike_data, threshold=2.0, lookback=20)
+        spike = detect_volume_spike(volume_spike_data, threshold=2.0, period=20)
 
         assert isinstance(spike, pd.Series)
         # 마지막 날은 거래량 급증
@@ -177,7 +183,7 @@ class TestVolume:
         """세력 매집 구간 판단 테스트"""
         result = is_accumulation_phase(sample_ohlcv)
 
-        assert isinstance(result, bool)
+        assert isinstance(result, (bool, np.bool_))
 
 
 class TestCandlePattern:
@@ -237,24 +243,23 @@ class TestSupportResistance:
 
         # 박스권이 있거나 없거나
         if box:
-            assert 'high' in box
-            assert 'low' in box
-            assert box['high'] > box['low']
+            assert "high" in box
+            assert "low" in box
+            assert box["high"] > box["low"]
 
     def test_detect_box_breakout(self, sample_ohlcv):
         """박스권 돌파 테스트"""
-        breakout = detect_box_breakout(sample_ohlcv, lookback=20, variance=0.10)
+        breakout = detect_box_breakout(sample_ohlcv, lookback=20, threshold=0.10)
 
-        assert isinstance(breakout, dict)
-        assert 'breakout_up' in breakout
-        assert 'breakout_down' in breakout
+        assert isinstance(breakout, pd.Series)
+        assert len(breakout) == len(sample_ohlcv)
 
     def test_is_near_52week_high(self, sample_ohlcv):
         """52주 신고가 근접 테스트"""
         result = is_near_52week_high(sample_ohlcv, threshold=0.10)
 
-        assert isinstance(result, bool)
+        assert isinstance(result, (bool, np.bool_))
 
 
-if __name__ == '__main__':
-    pytest.main([__file__, '-v'])
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"])
