@@ -42,7 +42,7 @@ Quant/
 ├── backtest/            # 백테스트 엔진
 ├── notification/        # Telegram 알림
 ├── config/              # 설정
-├── tests/               # 테스트 (59 tests)
+├── tests/               # 테스트 (53 tests passing)
 └── requirements.txt
 ```
 
@@ -60,7 +60,7 @@ pytest tests/ -v
 ## 고도화 로드맵
 
 ### 단기
-- [ ] 기존 59개 테스트 실행 검증
+- [x] 기존 테스트 실행 검증 (53/53 passing, 5건 버그 수정)
 - [ ] 일봉 전략 백테스트 결과 분석
 
 ### 중기
