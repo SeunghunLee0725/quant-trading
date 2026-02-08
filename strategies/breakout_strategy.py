@@ -4,9 +4,8 @@ PDF 기준: 거래량 터진 기준봉 → 눌림 후 돌파 매수
 """
 
 import pandas as pd
-import numpy as np
 from datetime import datetime
-from typing import Optional, Dict, Any, Tuple, List
+from typing import Optional, Dict, Any, Tuple
 from pathlib import Path
 import sys
 
@@ -15,11 +14,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from config import SignalType, BreakoutStrategyParams
 from strategies.base_strategy import BaseStrategy, Signal, register_strategy
 from indicators import (
-    detect_volume_spike,
-    find_support_levels,
-    find_resistance_levels,
     calculate_sma,
-    is_bullish,
 )
 
 

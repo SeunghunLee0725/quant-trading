@@ -5,7 +5,7 @@ PDF 기준: 지지선, 저항선, 박스권, 추세선
 
 import pandas as pd
 import numpy as np
-from typing import Optional, Dict, List, Tuple, Union
+from typing import Optional, Dict, List
 from pathlib import Path
 import sys
 

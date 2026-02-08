@@ -5,7 +5,7 @@ PDF 기준: 망치형, 역망치형, 장대양봉/음봉, 도지, 잉컬핑 등
 
 import pandas as pd
 import numpy as np
-from typing import Optional, Dict, List, Tuple, Union
+from typing import Dict, Union
 from pathlib import Path
 import sys
 

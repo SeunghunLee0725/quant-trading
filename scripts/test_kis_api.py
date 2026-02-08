@@ -13,7 +13,7 @@ from pathlib import Path
 # 프로젝트 루트 추가
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from data import KISApi, get_kis_api
+from data import get_kis_api
 
 
 def test_connection():
@@ -80,7 +80,7 @@ def test_daily_ohlcv():
     if df is not None and not df.empty:
         print(f"   ✓ {len(df)}일 데이터 조회됨")
         print(f"     기간: {df.index[0].strftime('%Y-%m-%d')} ~ {df.index[-1].strftime('%Y-%m-%d')}")
-        print(f"\n   최근 5일:")
+        print("\n   최근 5일:")
         print(df.tail())
         return True
     else:
@@ -100,7 +100,7 @@ def test_minute_ohlcv():
 
     if df is not None and not df.empty:
         print(f"   ✓ {len(df)}개 분봉 데이터 조회됨")
-        print(f"\n   최근 5개:")
+        print("\n   최근 5개:")
         print(df.tail())
         return True
     else:

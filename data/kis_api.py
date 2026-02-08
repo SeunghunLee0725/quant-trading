@@ -4,13 +4,10 @@
 """
 
 import requests
-import json
 import pandas as pd
-import numpy as np
 from datetime import datetime, timedelta
-from typing import Optional, Dict, Any, List, Tuple
+from typing import Optional, Dict, List
 from pathlib import Path
-import time
 import os
 import sys
 

@@ -4,9 +4,8 @@ PDF 기준: 전략별 매수 조건 충족 종목 탐색
 """
 
 import pandas as pd
-import numpy as np
-from datetime import datetime, date
-from typing import List, Dict, Any, Optional, Union
+from datetime import datetime
+from typing import List, Dict, Any, Optional
 from dataclasses import dataclass, field
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
@@ -14,13 +13,11 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from config import SignalType
 from screener.filters import StockFilter, FilterResult, FilterFactory
 from strategies import (
     BaseStrategy,
     Signal,
     get_strategy,
-    get_all_strategies,
     Minute15Strategy,
     Minute30Strategy,
     LimitUpStrategy,
@@ -288,7 +285,7 @@ class StockScreener:
 
         lines = []
         lines.append("=" * 60)
-        lines.append(f"종목 스크리닝 보고서")
+        lines.append("종목 스크리닝 보고서")
         lines.append(f"생성 시간: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         lines.append("=" * 60)
         lines.append("")

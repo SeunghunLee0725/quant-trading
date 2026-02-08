@@ -5,7 +5,7 @@ PDF 기준: 5, 10, 20, 60, 120, 240일 이동평균선
 
 import pandas as pd
 import numpy as np
-from typing import Optional, List, Dict, Tuple, Union
+from typing import List, Dict, Tuple, Union
 from pathlib import Path
 import sys
 

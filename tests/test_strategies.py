@@ -5,7 +5,7 @@
 import pytest
 import pandas as pd
 import numpy as np
-from datetime import datetime, timedelta
+from datetime import datetime
 import sys
 from pathlib import Path
 
@@ -14,7 +14,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from config import SignalType
 from strategies import (
     Signal,
-    BaseStrategy,
     get_strategy,
     get_all_strategies,
     Minute15Strategy,

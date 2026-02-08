@@ -5,7 +5,6 @@ PDF 기준: 거래량 급등, 매집 구간, 기준봉 판단
 
 import pandas as pd
 import numpy as np
-from typing import Optional, Union, Tuple
 from pathlib import Path
 import sys
 

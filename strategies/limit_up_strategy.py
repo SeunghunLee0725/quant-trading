@@ -16,9 +16,6 @@ from config import SignalType, LimitUpStrategyParams
 from strategies.base_strategy import BaseStrategy, Signal, register_strategy
 from indicators import (
     find_box_range,
-    detect_box_breakout,
-    detect_volume_spike,
-    is_bullish,
 )
 
 

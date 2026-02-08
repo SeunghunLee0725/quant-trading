@@ -14,7 +14,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from data import get_db
 from screener import StockScreener
 from backtest import Backtester, BacktestConfig, MultiStrategyBacktester
-from strategies import get_all_strategies, get_strategy
+from strategies import get_all_strategies
 
 # 페이지 설정
 st.set_page_config(

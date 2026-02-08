@@ -5,7 +5,7 @@ FinanceDataReader, pykrx를 활용한 한국 주식 데이터 수집
 
 import time
 from datetime import datetime, date, timedelta
-from typing import Optional, List, Dict, Any, Tuple
+from typing import Optional, Dict, Any, Tuple
 from pathlib import Path
 import pandas as pd
 
@@ -16,7 +16,7 @@ from pykrx import stock as pykrx_stock
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from config import DATA_COLLECTION, Market
+from config import DATA_COLLECTION
 from data.database import DatabaseManager, get_db
 
 

@@ -5,7 +5,6 @@
 from datetime import date, datetime
 from typing import Optional, List, Tuple
 import pandas as pd
-import numpy as np
 
 
 class ValidationError(Exception):

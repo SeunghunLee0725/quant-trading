@@ -3,9 +3,8 @@
 """
 
 from datetime import datetime, date, timedelta
-from typing import List, Optional, Union
+from typing import List, Union
 import pandas as pd
-import numpy as np
 
 
 # =========================================================

@@ -7,7 +7,6 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Optional, Dict, Any, List
-from enum import Enum
 import pandas as pd
 from pathlib import Path
 import sys

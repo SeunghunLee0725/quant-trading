@@ -6,7 +6,7 @@ SQLite 기반 주식 데이터 저장 및 관리
 import sqlite3
 from pathlib import Path
 from datetime import datetime, date
-from typing import Optional, List, Dict, Any, Tuple
+from typing import Optional, List, Dict, Any
 from contextlib import contextmanager
 import pandas as pd
 

@@ -5,7 +5,6 @@
 import pytest
 import pandas as pd
 import numpy as np
-from datetime import datetime, timedelta
 import sys
 from pathlib import Path
 
@@ -29,7 +28,6 @@ from indicators import (
     detect_hammer,
     detect_doji,
     detect_long_bullish_candle,
-    detect_engulfing_bullish,
     is_bullish,
     # 지지/저항
     find_support_levels,

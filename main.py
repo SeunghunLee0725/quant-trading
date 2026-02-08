@@ -14,44 +14,30 @@ import argparse
 import sys
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import List, Optional
+from typing import List
 
 # 프로젝트 루트 경로 추가
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from config import (
     PROJECT_NAME,
-    MARKETS,
-    TRADING,
-    SignalType,
 )
-from data import DatabaseManager, DataCollector, get_db, get_collector
+from data import get_db, get_collector
 from strategies import (
-    get_all_strategies,
     get_strategy,
-    Minute15Strategy,
-    Minute30Strategy,
-    LimitUpStrategy,
-    BreakoutStrategy,
 )
 from screener import (
     StockScreener,
-    DailyScreener,
-    IntradayScreener,
-    FilterFactory,
-    run_screening,
 )
 from backtest import (
     Backtester,
     MultiStrategyBacktester,
     BacktestConfig,
-    run_backtest,
 )
 from notification import (
     notify_screening,
     notify_backtest,
     notify_error,
-    notify_message,
 )
 from utils import (
     log_info,
@@ -59,7 +45,6 @@ from utils import (
     log_warning,
     get_today,
     date_to_str,
-    str_to_date,
     measure_time,
 )
 
@@ -73,7 +58,7 @@ def collect_data(markets: List[str] = None, days: int = 365):
         days: 수집 기간 (일)
     """
     log_info("=" * 60)
-    log_info(f"데이터 수집 시작")
+    log_info("데이터 수집 시작")
     log_info("=" * 60)
 
     if markets is None:
@@ -447,7 +432,7 @@ def main():
     log_info("")
     log_info(f"{'=' * 60}")
     log_info(f" {PROJECT_NAME}")
-    log_info(f" PDF 기반 퀀트 트레이딩 시스템")
+    log_info(" PDF 기반 퀀트 트레이딩 시스템")
     log_info(f"{'=' * 60}")
     log_info(f" 실행 시간: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     log_info(f" 모드: {args.mode}")

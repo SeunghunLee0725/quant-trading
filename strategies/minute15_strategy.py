@@ -11,15 +11,11 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from config import SignalType, Minute15StrategyParams, CandleThreshold
+from config import SignalType, Minute15StrategyParams
 from strategies.base_strategy import BaseStrategy, Signal, register_strategy
 from indicators import (
     calculate_all_ma,
-    calculate_change_rate,
     detect_volume_spike,
-    get_candle_50_percent_level,
-    get_candle_support_level,
-    is_bullish,
 )
 
 

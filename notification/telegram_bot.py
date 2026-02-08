@@ -17,7 +17,7 @@ from config import TELEGRAM
 from strategies import Signal
 from screener import ScreeningResult
 from backtest import PerformanceMetrics
-from utils import log_info, log_error, log_warning
+from utils import log_error, log_warning
 
 
 @dataclass
@@ -201,7 +201,7 @@ class TelegramNotifier:
             by_strategy[r.strategy].append(r)
 
         message_lines = [
-            f"📊 <b>스크리닝 결과</b>",
+            "📊 <b>스크리닝 결과</b>",
             f"⏰ {datetime.now().strftime('%Y-%m-%d %H:%M')}",
             f"총 {len(results)}개 종목 발견",
             "",

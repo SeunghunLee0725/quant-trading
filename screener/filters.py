@@ -4,7 +4,6 @@ PDF 기준: 거래량, 시가총액, 이동평균 등 기본 필터
 """
 
 import pandas as pd
-import numpy as np
 from typing import List, Dict, Any, Optional, Callable
 from dataclasses import dataclass, field
 from pathlib import Path
